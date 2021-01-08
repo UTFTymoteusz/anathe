@@ -2,6 +2,7 @@
 
 #include "net.hpp"
 
+#include <cstdint>
 #include <vector>
 
 struct dhcp_request {

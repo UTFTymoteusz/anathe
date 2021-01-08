@@ -2,8 +2,8 @@
 
 #include "net.hpp"
 
+#include <cstdio>
 #include <optional>
-#include <stdio.h>
 #include <vector>
 
 class DHCPLeaser {
@@ -13,7 +13,7 @@ class DHCPLeaser {
     void print_leases(FILE* file);
 
     ipv4_addr get(mac_addr mac);
-    ipv4_addr get_new_dynamic();
+    ipv4_addr get_new();
 
     void lease(mac_addr mac, ipv4_addr ipv4);
 

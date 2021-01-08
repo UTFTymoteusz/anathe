@@ -12,3 +12,5 @@
 #include "net/endian.hpp"
 #include "net/ipv4.hpp"
 #include "net/mac.hpp"
+
+void net_init();

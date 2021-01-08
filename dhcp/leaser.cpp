@@ -1,10 +1,10 @@
 #include "leaser.hpp"
 
 #include <chrono>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <string.h>
 #include <string>
 
 DHCPLeaser::DHCPLeaser(const char* statics_path, const char* leases_path) {
@@ -49,7 +49,7 @@ ipv4_addr DHCPLeaser::get(mac_addr mac) {
     return {0, 0, 0, 0};
 }
 
-ipv4_addr DHCPLeaser::get_new_dynamic() {
+ipv4_addr DHCPLeaser::get_new() {
     for (int i = 100; i < 254; i++) {
         auto addr = ipv4_addr(192, 168, 0, i);
 
@@ -118,6 +118,8 @@ ipv4_addr DHCPLeaser::get_leased(mac_addr mac) {
 }
 
 void DHCPLeaser::read_statics() {
+    // TODO: Make this actually only read if the file was modified
+
     std::ifstream file;
 
     auto read_mac = [](std::istringstream& stream) {

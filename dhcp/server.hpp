@@ -6,6 +6,7 @@
 #include <optional>
 
 struct dhcp_request;
+class dhcp_optionreader;
 
 class DHCPServer {
     public:
@@ -23,5 +24,6 @@ class DHCPServer {
     int       m_sock;
     ipv4_addr m_srv_addr;
 
+    void      read_options(dhcp_request& request, dhcp_optionreader& reader);
     ipv4_addr local_addr();
 };

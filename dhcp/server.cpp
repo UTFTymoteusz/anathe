@@ -1,15 +1,8 @@
 #include "server.hpp"
 
-#include "dhcp.hpp"
-
-#if _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#else
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#endif
+#include "net.hpp"
+#include "option.hpp"
+#include "packet.hpp"
 
 #include <algorithm>
 #include <stdio.h>
@@ -57,8 +50,6 @@ std::optional<dhcp_request> DHCPServer::recv() {
         if (len == 0)
             break;
 
-        cln_addr.sin_addr.s_addr = INADDR_BROADCAST;
-
         auto* packet = (dhcp_packet*) buffer;
         if (packet->msg_type != BOOT_REQUEST)
             continue;
@@ -74,6 +65,8 @@ std::optional<dhcp_request> DHCPServer::recv() {
 
         if (option->data[0] != DHCP_DISCOVER && option->data[0] != DHCP_REQUEST)
             continue;
+
+        cln_addr.sin_addr.s_addr = INADDR_BROADCAST;
 
         printf("%02x:%02x:%02x:%02x:%02x:%02x: %s\n", packet->client_hw[0], packet->client_hw[1],
                packet->client_hw[2], packet->client_hw[3], packet->client_hw[4],
@@ -91,39 +84,7 @@ std::optional<dhcp_request> DHCPServer::recv() {
         request.client_addr = packet->client_own_addr;
         request.client_hw   = packet->client_hw;
 
-        while (true) {
-            auto option = reader.read();
-            if (!option.has_value())
-                break;
-
-            switch (option->type) {
-            case 61:
-                printf("Option: (61) Client identifier\n");
-                break;
-            case 50: {
-                printf("Option: (50) Requested IP Address\n");
-
-                auto addr           = (ipv4_addr) option->data;
-                request.client_addr = addr;
-
-                printf("  Requested IP Address: %i.%i.%i.%i\n", addr[0], addr[1], addr[2], addr[3]);
-            } break;
-            case 55:
-                // TODO: Make this actually work
-                printf("Option: (55) Parameter Request List\n");
-                break;
-            case 12:
-                strncpy(request.hostname, (const char*) option->data,
-                        std::min((size_t) option->len, sizeof(buffer)));
-
-                printf("Option: (12) Hostname\n");
-                printf("  Hostname: %s\n", request.hostname);
-                break;
-            default:
-                printf("Option: (%i) Unknown\n", option->type);
-                break;
-            }
-        }
+        read_options(request, reader);
 
         return request;
     }
@@ -157,16 +118,16 @@ void prepare_dhcp_packet(dhcp_packet* packet, dhcp_request& request) {
 }
 
 void write_options(dhcp_optionwriter& writer, dhcp_request& request) {
-    writer.write(3, (uint8_t*) &request.router_addr, sizeof(ipv4_addr));
-    writer.write(1, (uint8_t*) &request.mask, sizeof(ipv4_addr));
-    writer.write(6, (uint8_t*) request.dns.data(), request.dns.size() * sizeof(ipv4_addr));
-    writer.write(54, (uint8_t*) &request.server_addr, sizeof(ipv4_addr));
+    writer.write(3, request.router_addr);
+    writer.write(1, request.mask);
+    writer.write(6, request.dns.data(), request.dns.size() * sizeof(ipv4_addr));
+    writer.write(54, request.server_addr);
 
-    if (strlen(request.domain))
-        writer.write(15, (uint8_t*) request.domain, strlen(request.domain));
+    if (*request.domain)
+        writer.write(15, request.domain, strlen(request.domain));
 
-    if (strlen(request.hostname))
-        writer.write(12, (uint8_t*) request.hostname, strlen(request.hostname));
+    if (*request.hostname)
+        writer.write(12, request.hostname, strlen(request.hostname));
 }
 
 void DHCPServer::offer(dhcp_request& request) {
@@ -176,7 +137,7 @@ void DHCPServer::offer(dhcp_request& request) {
     prepare_dhcp_packet(reply_packet, request);
 
     uint8_t option[128];
-    auto    writer = dhcp_optionwriter(&reply_buffer[sizeof(dhcp_packet)]);
+    auto    writer = dhcp_optionwriter(reply_packet->options);
 
     option[0] = DHCP_OFFER;
     writer.write(53, option, 1);
@@ -195,7 +156,7 @@ void DHCPServer::ack(dhcp_request& request) {
     prepare_dhcp_packet(reply_packet, request);
 
     uint8_t option[128];
-    auto    writer = dhcp_optionwriter(&reply_buffer[sizeof(dhcp_packet)]);
+    auto    writer = dhcp_optionwriter(reply_packet->options);
 
     option[0] = DHCP_ACK;
     writer.write(53, option, 1);
@@ -214,7 +175,7 @@ void DHCPServer::nack(dhcp_request& request) {
     prepare_dhcp_packet(reply_packet, request);
 
     uint8_t option[128];
-    auto    writer = dhcp_optionwriter(&reply_buffer[sizeof(dhcp_packet)]);
+    auto    writer = dhcp_optionwriter(reply_packet->options);
 
     option[0] = DHCP_NACK;
     writer.write(53, option, 1);
@@ -222,6 +183,45 @@ void DHCPServer::nack(dhcp_request& request) {
 
     sendto(m_sock, (char*) reply_buffer, sizeof(dhcp_packet) + writer.length(), 0,
            (const sockaddr*) &request.reply_addr, sizeof(request.reply_addr));
+}
+
+// privatebongs
+void DHCPServer::read_options(dhcp_request& request, dhcp_optionreader& reader) {
+    while (true) {
+        auto option = reader.read();
+        if (!option.has_value())
+            break;
+
+        switch (option->type) {
+        case 61:
+            printf("Option: (61) Client identifier\n");
+            break;
+        case 50: {
+            printf("Option: (50) Requested IP Address\n");
+
+            auto addr           = (ipv4_addr) option->data;
+            request.client_addr = addr;
+
+            printf("  Requested IP Address: %i.%i.%i.%i\n", addr[0], addr[1], addr[2], addr[3]);
+        } break;
+        case 55:
+            // TODO: Make this actually work
+            printf("Option: (55) Parameter Request List\n");
+            break;
+        case 12: {
+            char buffer[128];
+
+            strncpy(request.hostname, (const char*) option->data,
+                    std::min((size_t) option->len, sizeof(buffer)));
+
+            printf("Option: (12) Hostname\n");
+            printf("  Hostname: %s\n", request.hostname);
+        } break;
+        default:
+            printf("Option: (%i) Unknown\n", option->type);
+            break;
+        }
+    }
 }
 
 ipv4_addr DHCPServer::local_addr() {
