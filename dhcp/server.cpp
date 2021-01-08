@@ -128,6 +128,9 @@ void write_options(dhcp_optionwriter& writer, dhcp_request& request) {
 
     if (*request.hostname)
         writer.write(12, request.hostname, strlen(request.hostname));
+
+    if (request.lease_time != 0)
+        writer.write(51, htonl((uint32_t) request.lease_time));
 }
 
 void DHCPServer::offer(dhcp_request& request) {
