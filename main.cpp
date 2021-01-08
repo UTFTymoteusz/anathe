@@ -1,25 +1,30 @@
-#include "dhcpleaser.hpp"
-#include "dhcpserver.hpp"
+#include "dhcp/leaser.hpp"
+#include "dhcp/server.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
 
 int main() {
-    Sleep(7000);
+#if _WIN32
+    WSADATA wsaData;
 
-    DHCPServer server;
+    int iResult;
+
+    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (iResult != 0) {
+        printf("WSAStartup failed: %d\n", iResult);
+        exit(EXIT_FAILURE);
+    }
+#endif
+
+    DHCPServer server = DHCPServer();
     DHCPLeaser leaser = DHCPLeaser("dhcpstatic.cfg");
 
-again:
+    leaser.print_leases(stdout);
 
     if (server.start() != 0) {
         perror("server.start failed");
-        // exit(EXIT_FAILURE);
-        Sleep(2000);
-
-
-        goto again;
+        exit(EXIT_FAILURE);
     }
 
     while (true) {
@@ -29,7 +34,7 @@ again:
 
         auto request = request_try.value();
 
-        strncpy(request.domain, "twoj.stary", sizeof(request.domain));
+        strncpy(request.domain, "menel", sizeof(request.domain));
 
         request.dns.push_back(ipv4_addr(1, 1, 1, 1));
         request.dns.push_back(ipv4_addr(1, 0, 0, 1));
@@ -70,7 +75,9 @@ again:
             request.mask        = ipv4_addr(255, 255, 255, 0);
             request.router_addr = ipv4_addr(192, 168, 0, 1);
 
-            leaser.lease(request.client_hw, request.client_addr);
+            if (!static_addr)
+                leaser.lease(request.client_hw, request.client_addr);
+
             server.ack(request);
         }
     }

@@ -1,4 +1,4 @@
-CXX  = x86_64-w64-mingw32-g++
+CXX  ?= g++
 MKDIR = mkdir -p
 
 BIN := bin/
@@ -13,21 +13,29 @@ OBJS := $(patsubst %.o, $(OBJ_DEST)%.o, $(CXXFILES:.cpp=.cpp.o))
 
 INCLUDES := -I. -Iinclude/
 
+ifeq ($(CXX),x86_64-w64-mingw32-g++)
+CXXFLAGS :=    \
+	-O2 	   \
+	-pipe	   \
+	-std=c++17 \
+	-lws2_32   \
+	-static -static-libgcc -static-libstdc++ \
+	$(INCLUDES)
+else
 CXXFLAGS :=    \
 	-O2 	   \
 	-pipe	   \
 	-std=c++17 \
 	-lgcc 	   \
-	-lws2_32   \
-	-static -static-libgcc -static-libstdc++ \
 	$(INCLUDES)
+endif
 
 format:
 	@$(MKDIR) $(ISO) $(SYS)
 	clang-format -style=file -i ${CXXFILES} ${HXXFILES}
 
 all: $(OBJS)
-	$(CXX) $(OBJS) -o $(BIN)dhcpbong $(CXXFLAGS) 
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN)anathe $(CXXFLAGS) 
 
 include $(shell find $(DEP_DEST) -type f -name *.d)
 

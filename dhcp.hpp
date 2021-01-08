@@ -1,12 +1,9 @@
 #pragma once
 
-#include "endian.hpp"
-#include "ipv4.hpp"
-#include "mac.hpp"
+#include "net.hpp"
 
 #include <algorithm>
 #include <optional>
-#include <stdint.h>
 
 #define BOOT_REQUEST 1
 #define BOOT_REPLY 2
@@ -48,7 +45,7 @@ struct dhcp_option {
     uint8_t type;
     uint8_t len;
 
-    uint8_t data[128];
+    uint8_t data[256];
 };
 
 class dhcp_optionreader {
@@ -70,7 +67,7 @@ class dhcp_optionreader {
         option.type = m_data[offset + 0];
         option.len  = m_data[offset + 1];
 
-        memcpy(&option.data, &m_data[offset + 2], std::min(len, 128));
+        memcpy(&option.data, &m_data[offset + 2], std::min(len, (int) sizeof(option.data)));
         return option;
     }
 

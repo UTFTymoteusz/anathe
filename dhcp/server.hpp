@@ -1,6 +1,7 @@
 #pragma once
 
-#include "dhcprequest.hpp"
+#include "net.hpp"
+#include "request.hpp"
 
 #include <optional>
 

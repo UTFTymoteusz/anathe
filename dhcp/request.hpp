@@ -1,18 +1,7 @@
 #pragma once
 
-#include "ipv4.hpp"
-#include "mac.hpp"
+#include "net.hpp"
 
-#if _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#else
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#endif
-
-#include <stdint.h>
 #include <vector>
 
 struct dhcp_request {

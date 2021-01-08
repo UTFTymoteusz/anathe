@@ -1,4 +1,4 @@
-#include "dhcpleaser.hpp"
+#include "leaser.hpp"
 
 #include <chrono>
 #include <fstream>
@@ -16,6 +16,25 @@ DHCPLeaser::DHCPLeaser(const char* statics_path, const char* leases_path) {
 
     read_statics();
     read_leases();
+}
+
+void DHCPLeaser::print_leases(FILE* file) {
+    fprintf(file, "Static leases:\n");
+
+    for (auto& lease : m_statics)
+        fprintf(file, "  %02x:%02x:%02x:%02x:%02x:%02x - %i.%i.%i.%i\n", lease.mac[0], lease.mac[1],
+                lease.mac[2], lease.mac[3], lease.mac[4], lease.mac[5], lease.ipv4[0],
+                lease.ipv4[1], lease.ipv4[2], lease.ipv4[3]);
+
+    fprintf(file, "\n");
+    fprintf(file, "Dynamic leases:\n");
+
+    for (auto& lease : m_leases)
+        fprintf(file, "  %02x:%02x:%02x:%02x:%02x:%02x - %i.%i.%i.%i\n", lease.mac[0], lease.mac[1],
+                lease.mac[2], lease.mac[3], lease.mac[4], lease.mac[5], lease.ipv4[0],
+                lease.ipv4[1], lease.ipv4[2], lease.ipv4[3]);
+
+    fprintf(file, "\n");
 }
 
 ipv4_addr DHCPLeaser::get(mac_addr mac) {
@@ -42,10 +61,19 @@ ipv4_addr DHCPLeaser::get_new_dynamic() {
 }
 
 void DHCPLeaser::lease(mac_addr mac, ipv4_addr ipv4) {
+    for (auto& lease : m_leases) {
+        if (lease.mac == mac) {
+            lease.ipv4 = ipv4;
+            save_leases();
+
+            return;
+        }
+    }
+
     m_leases.push_back({
         .mac       = mac,
         .ipv4      = ipv4,
-        .expire_at = std::time(0) + 2,
+        .expire_at = std::time(0) + 3600,
     });
 
     save_leases();
@@ -97,6 +125,7 @@ void DHCPLeaser::read_statics() {
 
         for (int i = 0; i < sizeof(bytes); i++) {
             int v;
+
             stream >> std::hex >> v;
             stream.get();
 
@@ -108,11 +137,13 @@ void DHCPLeaser::read_statics() {
 
         return mac_addr(bytes);
     };
+
     auto read_ipv4 = [](std::istringstream& stream) {
         uint8_t bytes[4];
 
         for (int i = 0; i < sizeof(bytes); i++) {
             int v;
+
             stream >> std::dec >> v;
             stream.get();
 
@@ -160,6 +191,7 @@ void DHCPLeaser::read_leases() {
 
     for (int i = 0; i < count; i++) {
         addr_lease lease;
+
         file.read((char*) &lease, sizeof(lease));
         m_leases.push_back(lease);
     }

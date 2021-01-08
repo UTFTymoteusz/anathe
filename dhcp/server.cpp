@@ -1,4 +1,4 @@
-#include "dhcpserver.hpp"
+#include "server.hpp"
 
 #include "dhcp.hpp"
 
@@ -22,6 +22,10 @@ int DHCPServer::start(int port) {
     sockaddr_in srv_addr_in;
 
     m_sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (m_sock == -1) {
+        perror("socket() failed");
+        return -1;
+    }
 
     int be = 1;
     setsockopt(m_sock, SOL_SOCKET, SO_BROADCAST, (char*) &be, sizeof(be));
@@ -31,8 +35,10 @@ int DHCPServer::start(int port) {
     srv_addr_in.sin_port        = htons(port);
 
     int bind_try = bind(m_sock, (const sockaddr*) &srv_addr_in, sizeof(srv_addr_in));
-    if (bind_try != 0)
+    if (bind_try != 0) {
+        perror("bind() failed");
         return bind_try;
+    }
 
     m_srv_addr = local_addr();
 
