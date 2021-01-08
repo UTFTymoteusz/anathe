@@ -74,7 +74,7 @@ void handle(dhcp_request& request) {
         request.router_addr = config.router_addr;
 
         if (!is_static)
-            leaser.lease(request.client_hw, request.client_addr);
+            leaser.lease(request.client_hw, request.client_addr, config.lease_time);
 
         server.ack(request);
     }

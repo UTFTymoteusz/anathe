@@ -62,7 +62,7 @@ ipv4_addr DHCPLeaser::get_new(ipv4_addr start, ipv4_addr end) {
     return {0, 0, 0, 0};
 }
 
-void DHCPLeaser::lease(mac_addr mac, ipv4_addr ipv4) {
+void DHCPLeaser::lease(mac_addr mac, ipv4_addr ipv4, int lease_time) {
     for (auto& lease : m_leases) {
         if (lease.mac == mac) {
             lease.ipv4 = ipv4;
@@ -75,7 +75,7 @@ void DHCPLeaser::lease(mac_addr mac, ipv4_addr ipv4) {
     m_leases.push_back({
         .mac       = mac,
         .ipv4      = ipv4,
-        .expire_at = std::time(0) + 3600,
+        .expire_at = std::time(0) + lease_time,
     });
 
     save_leases();

@@ -56,6 +56,9 @@ void Config::read(const char* path) {
         else if (strcmp(key, "dynamicend") == 0) {
             dynamic_end = parse_ipv4(value);
         }
+        else if (strcmp(key, "leasetime") == 0) {
+            lease_time = atoi(value);
+        }
         else
             fprintf(stderr, "config: Unknown option: %s - %s\n", key, value);
     }
