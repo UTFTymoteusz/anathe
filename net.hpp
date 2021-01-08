@@ -1,6 +1,12 @@
 #pragma once
 
 #if _WIN32
+#undef WINVER
+#undef _WIN32_WINNT
+
+#define WINVER 0x0600
+#define _WIN32_WINNT 0x0600
+
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else

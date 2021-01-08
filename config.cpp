@@ -1,5 +1,6 @@
 #include "config.hpp"
 
+#include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -24,7 +25,7 @@ void Config::read(const char* path) {
     std::string line;
     while (std::getline(file, line)) {
         // Gotta check if the line is whitespace
-        if (!(line.find_first_not_of(' ') != std::string::npos))
+        if (std::all_of(line.begin(), line.end(), isspace))
             continue;
 
         std::istringstream line_str(line);
@@ -59,8 +60,12 @@ void Config::read(const char* path) {
         else if (strcmp(key, "leasetime") == 0) {
             lease_time = atoi(value);
         }
-        else
+        else if (strcmp(key, "ntpserver") == 0) {
+            ntp_servers.push_back(parse_ipv4(value));
+        }
+        else {
             fprintf(stderr, "config: Unknown option: %s - %s\n", key, value);
+        }
     }
 
     file.close();

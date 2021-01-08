@@ -12,6 +12,8 @@ class Config {
     std::vector<ipv4_addr> dns_servers;
     char*                  dns_suffix;
 
+    std::vector<ipv4_addr> ntp_servers;
+
     uint32_t lease_time;
 
     ipv4_addr dynamic_start;

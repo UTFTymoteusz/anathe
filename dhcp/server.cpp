@@ -118,18 +118,28 @@ void prepare_dhcp_packet(dhcp_packet* packet, dhcp_request& request) {
 }
 
 void write_options(dhcp_optionwriter& writer, dhcp_request& request) {
-    writer.write(3, request.router_addr);
-    writer.write(1, request.mask);
-    writer.write(6, request.dns.data(), request.dns.size() * sizeof(ipv4_addr));
-    writer.write(54, request.server_addr);
+    if (request.option(3) && request.router_addr)
+        writer.write(3, request.router_addr);
 
-    if (*request.domain)
+    if (request.option(1) && request.mask)
+        writer.write(1, request.mask);
+
+    if (request.option(6) && !request.dns.empty())
+        writer.write(6, request.dns.data(), request.dns.size() * sizeof(ipv4_addr));
+
+    if (request.option(42) && !request.ntp.empty())
+        writer.write(42, request.ntp.data(), request.ntp.size() * sizeof(ipv4_addr));
+
+    if (request.option(15) && *request.domain)
         writer.write(15, request.domain, strlen(request.domain));
 
-    if (*request.hostname)
+    if (request.option(12) && *request.hostname)
         writer.write(12, request.hostname, strlen(request.hostname));
 
-    if (request.lease_time != 0)
+    if (request.server_addr)
+        writer.write(54, request.server_addr);
+
+    if (request.lease_time)
         writer.write(51, htonl(request.lease_time));
 }
 
@@ -196,9 +206,9 @@ void DHCPServer::read_options(dhcp_request& request, dhcp_optionreader& reader) 
             break;
 
         switch (option->type) {
-        case 61:
+        case 61: {
             printf("Option: (61) Client identifier\n");
-            break;
+        } break;
         case 50: {
             printf("Option: (50) Requested IP Address\n");
 
@@ -207,10 +217,11 @@ void DHCPServer::read_options(dhcp_request& request, dhcp_optionreader& reader) 
 
             printf("  Requested IP Address: %i.%i.%i.%i\n", addr[0], addr[1], addr[2], addr[3]);
         } break;
-        case 55:
-            // TODO: Make this actually work
+        case 55: {
             printf("Option: (55) Parameter Request List\n");
-            break;
+
+            memcpy(request.options, option->data, option->len);
+        } break;
         case 12: {
             char buffer[128];
 
@@ -220,9 +231,9 @@ void DHCPServer::read_options(dhcp_request& request, dhcp_optionreader& reader) 
             printf("Option: (12) Hostname\n");
             printf("  Hostname: %s\n", request.hostname);
         } break;
-        default:
+        default: {
             printf("Option: (%i) Unknown\n", option->type);
-            break;
+        } break;
         }
     }
 }

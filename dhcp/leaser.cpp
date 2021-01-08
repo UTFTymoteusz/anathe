@@ -16,6 +16,8 @@ DHCPLeaser::DHCPLeaser(const char* statics_path, const char* leases_path) {
 
     read_statics();
     read_leases();
+
+    update_leases();
 }
 
 void DHCPLeaser::print_leases(FILE* file) {

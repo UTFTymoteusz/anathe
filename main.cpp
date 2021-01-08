@@ -39,6 +39,7 @@ void handle(dhcp_request& request) {
         strncpy(request.domain, config.dns_suffix, sizeof(request.domain));
 
     request.dns        = config.dns_servers;
+    request.ntp        = config.ntp_servers;
     request.lease_time = config.lease_time;
 
     auto addr      = leaser.get(request.client_hw);
