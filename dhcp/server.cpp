@@ -106,10 +106,13 @@ void prepare_dhcp_packet(dhcp_packet* packet, dhcp_request& request) {
 
     packet->client_own_addr = {};
     packet->client_addr     = request.client_addr;
-    packet->next_addr       = request.server_addr;
+    packet->next_addr       = request.next_addr;
     packet->relay_addr      = {};
 
     packet->client_hw = request.client_hw;
+
+    strncpy(packet->server_hostname, request.boot_hostname, sizeof(packet->server_hostname));
+    strncpy(packet->boot_file, request.boot_filename, sizeof(packet->boot_file));
 
     packet->cookie[0] = 0x63;
     packet->cookie[1] = 0x82;

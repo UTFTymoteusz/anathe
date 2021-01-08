@@ -38,6 +38,12 @@ void handle(dhcp_request& request) {
     if (config.dns_suffix)
         strncpy(request.domain, config.dns_suffix, sizeof(request.domain));
 
+    if (config.boot_hostname)
+        strncpy(request.boot_hostname, config.boot_hostname, sizeof(request.boot_hostname));
+
+    if (config.boot_filename)
+        strncpy(request.boot_filename, config.boot_filename, sizeof(request.boot_filename));
+
     request.dns        = config.dns_servers;
     request.ntp        = config.ntp_servers;
     request.lease_time = config.lease_time;
@@ -55,6 +61,7 @@ void handle(dhcp_request& request) {
         request.client_addr = addr;
         request.mask        = config.mask;
         request.router_addr = config.router_addr;
+        request.next_addr   = config.next_addr;
 
         server.offer(request);
     }
@@ -81,6 +88,7 @@ void handle(dhcp_request& request) {
         request.client_addr = addr;
         request.mask        = config.mask;
         request.router_addr = config.router_addr;
+        request.next_addr   = config.next_addr;
 
         if (!is_static)
             leaser.lease(request.client_hw, request.client_addr, config.lease_time);

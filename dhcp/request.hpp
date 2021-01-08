@@ -14,6 +14,7 @@ struct dhcp_request {
     ipv4_addr              client_addr;
     ipv4_addr              mask;
     ipv4_addr              router_addr;
+    ipv4_addr              next_addr;
     std::vector<ipv4_addr> dns;
     std::vector<ipv4_addr> ntp;
     uint32_t               lease_time;
@@ -22,6 +23,9 @@ struct dhcp_request {
 
     char domain[64];
     char hostname[64];
+
+    char boot_hostname[64];
+    char boot_filename[128];
 
     sockaddr_in reply_addr;
     mac_addr    client_hw;

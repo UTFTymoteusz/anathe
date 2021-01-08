@@ -31,7 +31,7 @@ void Config::read(const char* path) {
         std::istringstream line_str(line);
 
         char key[64];
-        char value[64];
+        char value[256];
 
         line_str >> key;
         line_str >> value;
@@ -41,6 +41,9 @@ void Config::read(const char* path) {
         }
         else if (strcmp(key, "mask") == 0) {
             mask = parse_ipv4(value);
+        }
+        else if (strcmp(key, "next") == 0) {
+            next_addr = parse_ipv4(value);
         }
         else if (strcmp(key, "dnssuffix") == 0) {
             int len    = strlen(value);
@@ -62,6 +65,18 @@ void Config::read(const char* path) {
         }
         else if (strcmp(key, "ntpserver") == 0) {
             ntp_servers.push_back(parse_ipv4(value));
+        }
+        else if (strcmp(key, "boothostname") == 0) {
+            int len       = strlen(value);
+            boot_hostname = new char[len + 1];
+
+            strncpy(boot_hostname, value, len + 1);
+        }
+        else if (strcmp(key, "bootfilename") == 0) {
+            int len       = strlen(value);
+            boot_filename = new char[len + 1];
+
+            strncpy(boot_filename, value, len + 1);
         }
         else {
             fprintf(stderr, "config: Unknown option: %s - %s\n", key, value);
