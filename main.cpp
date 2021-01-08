@@ -2,8 +2,8 @@
 #include "dhcp/leaser.hpp"
 #include "dhcp/server.hpp"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 Config config;
 
@@ -58,9 +58,17 @@ void handle(dhcp_request& request) {
         server.offer(request);
     }
     else if (request.request) {
-        if (is_static && request.client_addr != addr) {
-            server.nack(request);
-            return;
+        if (is_static) {
+            if (request.client_addr != addr) {
+                server.nack(request);
+                return;
+            }
+        }
+        else {
+            if (addr < config.dynamic_start || addr > config.dynamic_end) {
+                server.nack(request);
+                return;
+            }
         }
 
         auto owner = leaser.ownerof(request.client_addr);

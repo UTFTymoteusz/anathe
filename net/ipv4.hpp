@@ -33,6 +33,14 @@ struct ipv4_addr {
         return memcmp(bytes, b.bytes, 4) != 0;
     }
 
+    bool operator<(const ipv4_addr& b) {
+        return memcmp(bytes, b.bytes, 4) < 0;
+    }
+
+    bool operator>(const ipv4_addr& b) {
+        return memcmp(bytes, b.bytes, 4) > 0;
+    }
+
     bool isSubnettedWith(ipv4_addr destination, ipv4_addr mask) {
         return (*this & mask) == (destination & mask);
     }

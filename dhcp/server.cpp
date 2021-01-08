@@ -5,8 +5,8 @@
 #include "packet.hpp"
 
 #include <algorithm>
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include <unistd.h>
 
 DHCPServer::DHCPServer() {}
