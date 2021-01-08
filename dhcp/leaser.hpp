@@ -13,7 +13,7 @@ class DHCPLeaser {
     void print_leases(FILE* file);
 
     ipv4_addr get(mac_addr mac);
-    ipv4_addr get_new();
+    ipv4_addr get_new(ipv4_addr start, ipv4_addr end);
 
     void lease(mac_addr mac, ipv4_addr ipv4);
 

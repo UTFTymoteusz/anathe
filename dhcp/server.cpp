@@ -233,7 +233,7 @@ ipv4_addr DHCPServer::local_addr() {
     addr.sin_family = AF_INET;
     addr.sin_port   = htons(76);
 
-    inet_pton(AF_INET, "192.168.0.1", &addr.sin_addr);
+    inet_pton(AF_INET, "2.1.3.7", &addr.sin_addr);
 
     connect(addr_sock, (sockaddr*) &addr, sizeof(addr));
     getsockname(addr_sock, (sockaddr*) &addr, &addr_len);

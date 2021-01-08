@@ -49,9 +49,11 @@ ipv4_addr DHCPLeaser::get(mac_addr mac) {
     return {0, 0, 0, 0};
 }
 
-ipv4_addr DHCPLeaser::get_new() {
-    for (int i = 100; i < 254; i++) {
-        auto addr = ipv4_addr(192, 168, 0, i);
+ipv4_addr DHCPLeaser::get_new(ipv4_addr start, ipv4_addr end) {
+    for (uint32_t i = (uint32_t) start; i < (uint32_t) end; i++) {
+        auto addr = ipv4_addr(i);
+
+        printf("%i.%i.%i.%i\n", addr[0], addr[1], addr[2], addr[3]);
 
         if (!ownerof(addr))
             return addr;
@@ -120,8 +122,6 @@ ipv4_addr DHCPLeaser::get_leased(mac_addr mac) {
 void DHCPLeaser::read_statics() {
     // TODO: Make this actually only read if the file was modified
 
-    std::ifstream file;
-
     auto read_mac = [](std::istringstream& stream) {
         uint8_t bytes[6];
 
@@ -158,6 +158,7 @@ void DHCPLeaser::read_statics() {
         return ipv4_addr(bytes);
     };
 
+    std::ifstream file;
     file.open(m_statics_path);
 
     m_statics.clear();
