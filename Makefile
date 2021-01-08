@@ -37,7 +37,6 @@ CXXFLAGS :=    \
 endif
 
 format:
-	@$(MKDIR) $(ISO) $(SYS)
 	clang-format -style=file -i ${CXXFILES} ${HXXFILES}
 
 all: $(OBJS)
