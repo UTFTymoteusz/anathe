@@ -18,7 +18,7 @@ int main() {
 #endif
 
     DHCPServer server = DHCPServer();
-    DHCPLeaser leaser = DHCPLeaser("dhcpstatic.cfg");
+    DHCPLeaser leaser = DHCPLeaser("static.cfg", "leases");
 
     leaser.print_leases(stdout);
 

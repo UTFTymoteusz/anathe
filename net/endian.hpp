@@ -2,6 +2,9 @@
 
 #include <stdint.h>
 
+#undef BIG_ENDIAN
+#undef LITTLE_ENDIAN
+
 #define BIG_ENDIAN       \
     (!(union {           \
           uint16_t boi;  \

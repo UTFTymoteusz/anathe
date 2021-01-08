@@ -1,7 +1,13 @@
 CXX  ?= g++
 MKDIR = mkdir -p
 
-BIN := bin/
+ifeq ($(CXX),x86_64-w64-mingw32-g++)
+	BIN  := bin/win64/
+	EXEC := $(BIN)Anathe.exe
+else
+	BIN  := bin/linux/
+	EXEC := $(BIN)anathe
+endif
 
 DEP_DEST := $(BIN)dep/
 OBJ_DEST := $(BIN)obj/
@@ -35,7 +41,7 @@ format:
 	clang-format -style=file -i ${CXXFILES} ${HXXFILES}
 
 all: $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN)anathe $(CXXFLAGS) 
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(EXEC) $(CXXFLAGS) 
 
 include $(shell find $(DEP_DEST) -type f -name *.d)
 
