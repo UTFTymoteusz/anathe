@@ -136,6 +136,9 @@ void write_options(dhcp_optionwriter& writer, dhcp_request& request) {
     if (request.option(12) && *request.hostname)
         writer.write(12, request.hostname, strlen(request.hostname));
 
+    if (request.option(28) && request.router_addr && request.mask)
+        writer.write(28, request.router_addr | ~request.mask);
+
     if (request.server_addr)
         writer.write(54, request.server_addr);
 
@@ -149,7 +152,7 @@ void DHCPServer::offer(dhcp_request& request) {
 
     prepare_dhcp_packet(reply_packet, request);
 
-    uint8_t option[128];
+    uint8_t option[8];
     auto    writer = dhcp_optionwriter(reply_packet->options);
 
     option[0] = DHCP_OFFER;
@@ -168,7 +171,7 @@ void DHCPServer::ack(dhcp_request& request) {
 
     prepare_dhcp_packet(reply_packet, request);
 
-    uint8_t option[128];
+    uint8_t option[8];
     auto    writer = dhcp_optionwriter(reply_packet->options);
 
     option[0] = DHCP_ACK;
@@ -187,7 +190,7 @@ void DHCPServer::nack(dhcp_request& request) {
 
     prepare_dhcp_packet(reply_packet, request);
 
-    uint8_t option[128];
+    uint8_t option[8];
     auto    writer = dhcp_optionwriter(reply_packet->options);
 
     option[0] = DHCP_NACK;

@@ -24,23 +24,24 @@ CXXFLAGS :=    \
 	-O2 	   \
 	-pipe	   \
 	-std=c++17 \
-	-lws2_32   \
-	-static -static-libgcc -static-libstdc++ \
 	$(INCLUDES)
+
+LINKFLAGS := -lws2_32 -static -static-libgcc -static-libstdc++
 else
 CXXFLAGS :=    \
 	-O2 	   \
 	-pipe	   \
 	-std=c++17 \
-	-lgcc 	   \
 	$(INCLUDES)
+
+LINKFLAGS := -lgcc
 endif
 
 format:
 	clang-format -style=file -i ${CXXFILES} ${HXXFILES}
 
 all: $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $(EXEC) $(CXXFLAGS) 
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(EXEC) $(CXXFLAGS) $(LINKFLAGS)
 
 include $(shell find $(DEP_DEST) -type f -name *.d)
 
