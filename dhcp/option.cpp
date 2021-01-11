@@ -53,9 +53,8 @@ int dhcp_optionwriter::write(uint8_t type) {
 }
 
 int dhcp_optionwriter::write(uint8_t type, uint8_t* buffer, int len) {
-    if (type == 0 || type == 255) {
+    if (type == 0 || type == 255)
         return write(type);
-    }
 
     m_data[m_off + 0] = type;
     m_data[m_off + 1] = len;
