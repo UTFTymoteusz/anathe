@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
+#include <optional>
 
 dhcp_optionreader::dhcp_optionreader(uint8_t* data, int len) {
     m_data = data;
@@ -21,7 +22,7 @@ std::optional<dhcp_option> dhcp_optionreader::read() {
     option.type = m_data[offset + 0];
     option.len  = m_data[offset + 1];
 
-    memcpy(&option.data, &m_data[offset + 2], std::min(len, (int) sizeof(option.data)));
+    memcpy(&option.data, &m_data[offset + 2], std::min<int>(len, sizeof(option.data)));
     return option;
 }
 
