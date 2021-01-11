@@ -28,6 +28,7 @@ class dhcp_optionwriter {
     public:
     dhcp_optionwriter(uint8_t* data);
 
+    int write(uint8_t type);
     int write(uint8_t type, uint8_t* buffer, int len);
 
     template <typename T>

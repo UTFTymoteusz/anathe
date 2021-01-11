@@ -27,7 +27,7 @@ struct dhcp_request {
     char boot_hostname[64];
     char boot_filename[128];
 
-    sockaddr_in reply_addr;
+    sockaddr_in source_addr;
     mac_addr    client_hw;
 
     ipv4_addr server_addr;

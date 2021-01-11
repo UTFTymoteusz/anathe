@@ -47,14 +47,17 @@ dhcp_optionwriter::dhcp_optionwriter(uint8_t* data) {
     m_data = data;
 }
 
-int dhcp_optionwriter::write(uint8_t type, uint8_t* buffer, int len) {
-    m_data[m_off + 0] = type;
+int dhcp_optionwriter::write(uint8_t type) {
+    m_data[m_off++] = type;
+    return 1;
+}
 
+int dhcp_optionwriter::write(uint8_t type, uint8_t* buffer, int len) {
     if (type == 0 || type == 255) {
-        m_off++;
-        return 1;
+        return write(type);
     }
 
+    m_data[m_off + 0] = type;
     m_data[m_off + 1] = len;
 
     memcpy(&m_data[m_off + 2], buffer, len);

@@ -79,7 +79,7 @@ std::optional<dhcp_request> DHCPServer::recv() {
         request.request  = option->data[0] == DHCP_REQUEST;
 
         request.transct_id  = packet->transct_id;
-        request.reply_addr  = cln_addr;
+        request.source_addr = cln_addr;
         request.server_addr = m_srv_addr;
         request.client_addr = packet->client_own_addr;
         request.client_hw   = packet->client_hw;
@@ -92,7 +92,7 @@ std::optional<dhcp_request> DHCPServer::recv() {
     return {};
 }
 
-void prepare_dhcp_packet(dhcp_packet* packet, dhcp_request& request) {
+void prepare(dhcp_packet* packet, dhcp_request& request) {
     packet->msg_type = BOOT_REPLY;
 
     packet->hw_type = 0x01;
@@ -110,6 +110,7 @@ void prepare_dhcp_packet(dhcp_packet* packet, dhcp_request& request) {
     packet->relay_addr      = {};
 
     packet->client_hw = request.client_hw;
+    memset(packet->client_hw_padding, 0, sizeof(packet->client_hw_padding));
 
     strncpy(packet->server_hostname, request.boot_hostname, sizeof(packet->server_hostname));
     strncpy(packet->boot_file, request.boot_filename, sizeof(packet->boot_file));
@@ -150,58 +151,50 @@ void write_options(dhcp_optionwriter& writer, dhcp_request& request) {
 }
 
 void DHCPServer::offer(dhcp_request& request) {
-    uint8_t reply_buffer[1024] = {};
-    auto    reply_packet       = (dhcp_packet*) &reply_buffer;
+    uint8_t buffer[1024];
+    auto    packet = (dhcp_packet*) &buffer;
 
-    prepare_dhcp_packet(reply_packet, request);
+    prepare(packet, request);
 
-    uint8_t option[8];
-    auto    writer = dhcp_optionwriter(reply_packet->options);
+    auto writer = dhcp_optionwriter(packet->options);
 
-    option[0] = DHCP_OFFER;
-    writer.write(53, option, 1);
-
+    writer.write<uint8_t>(53, DHCP_OFFER);
     write_options(writer, request);
-    writer.write(255, nullptr, 0);
+    writer.write(255);
 
-    sendto(m_sock, (char*) reply_buffer, sizeof(dhcp_packet) + writer.length(), 0,
-           (const sockaddr*) &request.reply_addr, sizeof(request.reply_addr));
+    sendto(m_sock, (char*) buffer, sizeof(dhcp_packet) + writer.length(), 0,
+           (const sockaddr*) &request.source_addr, sizeof(request.source_addr));
 }
 
 void DHCPServer::ack(dhcp_request& request) {
-    uint8_t reply_buffer[1024] = {};
-    auto    reply_packet       = (dhcp_packet*) &reply_buffer;
+    uint8_t buffer[1024];
+    auto    packet = (dhcp_packet*) &buffer;
 
-    prepare_dhcp_packet(reply_packet, request);
+    prepare(packet, request);
 
-    uint8_t option[8];
-    auto    writer = dhcp_optionwriter(reply_packet->options);
+    auto writer = dhcp_optionwriter(packet->options);
 
-    option[0] = DHCP_ACK;
-    writer.write(53, option, 1);
-
+    writer.write<uint8_t>(53, DHCP_ACK);
     write_options(writer, request);
-    writer.write(255, nullptr, 0);
+    writer.write(255);
 
-    sendto(m_sock, (char*) reply_buffer, sizeof(dhcp_packet) + writer.length(), 0,
-           (const sockaddr*) &request.reply_addr, sizeof(request.reply_addr));
+    sendto(m_sock, (char*) buffer, sizeof(dhcp_packet) + writer.length(), 0,
+           (const sockaddr*) &request.source_addr, sizeof(request.source_addr));
 }
 
 void DHCPServer::nack(dhcp_request& request) {
-    uint8_t reply_buffer[1024] = {};
-    auto    reply_packet       = (dhcp_packet*) &reply_buffer;
+    uint8_t buffer[1024];
+    auto    packet = (dhcp_packet*) &buffer;
 
-    prepare_dhcp_packet(reply_packet, request);
+    prepare(packet, request);
 
-    uint8_t option[8];
-    auto    writer = dhcp_optionwriter(reply_packet->options);
+    auto writer = dhcp_optionwriter(packet->options);
 
-    option[0] = DHCP_NACK;
-    writer.write(53, option, 1);
-    writer.write(255, nullptr, 0);
+    writer.write<uint8_t>(53, DHCP_NACK);
+    writer.write(255);
 
-    sendto(m_sock, (char*) reply_buffer, sizeof(dhcp_packet) + writer.length(), 0,
-           (const sockaddr*) &request.reply_addr, sizeof(request.reply_addr));
+    sendto(m_sock, (char*) buffer, sizeof(dhcp_packet) + writer.length(), 0,
+           (const sockaddr*) &request.source_addr, sizeof(request.source_addr));
 }
 
 // privatebongs
