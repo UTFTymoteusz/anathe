@@ -147,7 +147,7 @@ void write_options(dhcp_optionwriter& writer, dhcp_request& request) {
         writer.write(54, request.server_addr);
 
     if (request.lease_time)
-        writer.write(51, htonl(request.lease_time));
+        writer.write(51, htonl(request.lease_time) + (rand() % 72));
 }
 
 void DHCPServer::offer(dhcp_request& request) {
