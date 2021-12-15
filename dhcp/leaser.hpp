@@ -16,6 +16,7 @@ class DHCPLeaser {
     ipv4_addr get_new(ipv4_addr start, ipv4_addr end);
 
     void lease(mac_addr mac, ipv4_addr ipv4, int lease_time);
+    void release(mac_addr mac, ipv4_addr ipv4);
 
     mac_addr ownerof(ipv4_addr ipv4);
 

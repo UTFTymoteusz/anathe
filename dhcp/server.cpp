@@ -65,7 +65,8 @@ std::optional<dhcp_request> DHCPServer::recv() {
         if (option->type != 53)
             continue;
 
-        if (option->data[0] != DHCP_DISCOVER && option->data[0] != DHCP_REQUEST)
+        if (option->data[0] != DHCP_DISCOVER && option->data[0] != DHCP_REQUEST &&
+            option->data[0] != DHCP_RELEASE)
             continue;
 
         if (cln_addr.sin_addr.s_addr == INADDR_ANY)
@@ -73,13 +74,13 @@ std::optional<dhcp_request> DHCPServer::recv() {
 
         printf("%02x:%02x:%02x:%02x:%02x:%02x: %s\n", packet->client_hw[0], packet->client_hw[1],
                packet->client_hw[2], packet->client_hw[3], packet->client_hw[4],
-               packet->client_hw[5],
-               option->data[0] == DHCP_DISCOVER ? "DHCP_DISCOVER" : "DHCP_REQUEST");
+               packet->client_hw[5], strdhcpmsg(option->data[0]));
 
         dhcp_request request = {};
 
         request.discover = option->data[0] == DHCP_DISCOVER;
         request.request  = option->data[0] == DHCP_REQUEST;
+        request.release  = option->data[0] == DHCP_RELEASE;
 
         request.transct_id  = packet->transct_id;
         request.source_addr = cln_addr;

@@ -8,6 +8,7 @@
 struct dhcp_request {
     bool discover;
     bool request;
+    bool release;
 
     uint32_t transct_id;
 

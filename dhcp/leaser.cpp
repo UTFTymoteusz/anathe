@@ -83,6 +83,18 @@ void DHCPLeaser::lease(mac_addr mac, ipv4_addr ipv4, int lease_time) {
     save_leases();
 }
 
+void DHCPLeaser::release(mac_addr mac, ipv4_addr ipv4) {
+    for (int i = 0; i < m_leases.size(); i++) {
+        auto lease = m_leases[i];
+
+        if ((lease.mac == mac) && (lease.ipv4 = ipv4)) {
+            m_leases.erase(m_leases.begin() + i);
+            save_leases();
+            return;
+        }
+    }
+}
+
 mac_addr DHCPLeaser::ownerof(ipv4_addr ipv4) {
     read_statics();
 

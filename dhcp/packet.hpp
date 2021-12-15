@@ -1,5 +1,9 @@
 #pragma once
 
+#include "net/endian.hpp"
+#include "net/ipv4.hpp"
+#include "net/mac.hpp"
+
 #include <cstdint>
 
 #define BOOT_REQUEST 1
@@ -8,8 +12,10 @@
 #define DHCP_DISCOVER 1
 #define DHCP_OFFER 2
 #define DHCP_REQUEST 3
+#define DHCP_DECLINE 4
 #define DHCP_ACK 5
 #define DHCP_NACK 6
+#define DHCP_RELEASE 7
 
 struct dhcp_packet {
     uint8_t msg_type;
@@ -39,3 +45,5 @@ struct dhcp_packet {
 
     uint8_t options[];
 };
+
+const char* strdhcpmsg(int msgtype);

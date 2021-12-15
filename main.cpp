@@ -44,6 +44,14 @@ void handle(dhcp_request& request) {
     if (config.boot_filename)
         strncpy(request.boot_filename, config.boot_filename, sizeof(request.boot_filename));
 
+    if (request.release) {
+        auto rl_addr = request.client_addr;
+        leaser.release(request.client_hw, request.client_addr);
+
+        printf("Released address: %i.%i.%i.%i\n", rl_addr[0], rl_addr[1], rl_addr[2], rl_addr[3]);
+        return;
+    }
+
     request.dns        = config.dns_servers;
     request.ntp        = config.ntp_servers;
     request.lease_time = config.lease_time;
