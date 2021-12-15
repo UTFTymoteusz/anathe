@@ -34,6 +34,8 @@ int DHCPServer::start(int port) {
     }
 
     m_srv_addr = local_addr();
+    printf("  Running from %i.%i.%i.%i\n", m_srv_addr[0], m_srv_addr[1], m_srv_addr[2],
+           m_srv_addr[3]);
 
     return 0;
 }
@@ -66,7 +68,8 @@ std::optional<dhcp_request> DHCPServer::recv() {
         if (option->data[0] != DHCP_DISCOVER && option->data[0] != DHCP_REQUEST)
             continue;
 
-        cln_addr.sin_addr.s_addr = INADDR_BROADCAST;
+        if (cln_addr.sin_addr.s_addr == INADDR_ANY)
+            cln_addr.sin_addr.s_addr = INADDR_BROADCAST;
 
         printf("%02x:%02x:%02x:%02x:%02x:%02x: %s\n", packet->client_hw[0], packet->client_hw[1],
                packet->client_hw[2], packet->client_hw[3], packet->client_hw[4],
@@ -147,7 +150,7 @@ void write_options(dhcp_optionwriter& writer, dhcp_request& request) {
         writer.write(54, request.server_addr);
 
     if (request.lease_time)
-        writer.write(51, htonl(request.lease_time) + (rand() % 72));
+        writer.write(51, htonl(request.lease_time));
 }
 
 void DHCPServer::offer(dhcp_request& request) {
